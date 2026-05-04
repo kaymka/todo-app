@@ -1,5 +1,8 @@
 (function() {
 
+    // Константа с базовым URL сервера
+    const API_URL = 'https://todo-api-qq25.onrender.com';
+
     //создаем и возвращаем заголовок приложения
     function createAppTitle(title) {
         //будем передавать заголовок в аргументе ф-ции,чтобы мы могли его изменить
@@ -83,8 +86,6 @@
         item.append(buttonGroup);
 
         return item;
-
-
     }
 
     async function createTodoApp(container, title, owner) {
@@ -92,13 +93,14 @@
         let todoAppTitle = createAppTitle(title);
         let todoItemForm = createTodoItemForm();
         let todoList = createTodoList();
+        
         const handlers = {
             onDone: async function({ todoItem, element }) {
                 // Правильно инвертируем значение
                 todoItem.done = !todoItem.done;
 
-                // Ждем ответ от сервера
-                await fetch(`http://localhost:3000/todos/${todoItem.id}`, {
+                // Ждем ответ от сервера 
+                await fetch(`${API_URL}/todos/${todoItem.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ done: todoItem.done }),
                     headers: {
@@ -107,11 +109,11 @@
                 });
             },
             onDelete({ todoItem, element }) {
-                if (!confirm('Вы уверена?')) {
+                if (!confirm('Вы уверены?')) {
                     return;
                 }
                 element.remove();
-                fetch(`http://localhost:3000/todos/${todoItem.id}`, {
+                fetch(`${API_URL}/todos/${todoItem.id}`, {
                     method: 'DELETE',
                 });
             },
@@ -123,8 +125,8 @@
         container.append(todoList);
 
         //Отправляем запрос на список всех дел
-        const responce = await fetch(`http://localhost:3000/todos?owner=${owner}`);
-        const todoItemList = await responce.json();
+        const response = await fetch(`${API_URL}/todos?owner=${owner}`);
+        const todoItemList = await response.json();
 
         todoItemList.forEach(todoItem => {
             const todoItemElement = createTodoItemElements(todoItem, handlers);
@@ -142,7 +144,7 @@
                 return;
             }
 
-            const responce = await fetch('http://localhost:3000/todos', {
+            const response = await fetch(`${API_URL}/todos`, {
                 method: 'POST',
                 body: JSON.stringify({
                     name: todoItemForm.input.value.trim(),
@@ -152,9 +154,9 @@
                     'Content-Type': 'application/json',
                 }
             });
-            const todoItem = await responce.json();
+            const todoItem = await response.json();
 
-            //помещаем в перемнную результат выполнения ф-ции
+            //помещаем в переменную результат выполнения функции
             let todoItemElement = createTodoItemElements(todoItem, handlers);
 
             //добавляем эл-т в список
@@ -162,10 +164,10 @@
 
             //обнуляем значение в поле, чтобы не пришлось стирать его вручную
             todoItemForm.input.value = '';
-        })
+        });
     }
 
-    //явно регистрируем ф-цию createTodoApp в глобальном объекте window, чтобы получить доступ к этой ф-ции из дргуих скриптов
+    //явно регистрируем функцию createTodoApp в глобальном объекте window, чтобы получить доступ к этой функции из других скриптов
     window.createTodoApp = createTodoApp;
 
 })();
